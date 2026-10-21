@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  sentinel-x:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sentinel-x-guardian
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DATABASE_URL=sqlite:///./sentinel_x.db
+      - ENVIRONMENT=production
+    restart: unless-stopped
+    volumes:
+      - sentinel-data:/app/data
+
+volumes:
+  sentinel-data:
+    driver: local
