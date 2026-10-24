@@ -256,7 +256,7 @@ export const EventExplorer: React.FC = () => {
                 <div>
                   <span className="text-slate-400 block">TIMESTAMP</span>
                   <span className="text-slate-300">
-                    {inspectedEvent.timestamp ? new Date(inspectedEvent.timestamp).toLocaleTimeString() : 'N/A'}
+                    {inspectedEvent.timestamp ? new Date(inspectedEvent.timestamp).toLocaleString() : 'N/A'}
                   </span>
                 </div>
               </div>

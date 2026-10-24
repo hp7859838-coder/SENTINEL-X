@@ -15,8 +15,13 @@ import { StatusBadge } from '../components/StatusBadge';
 import { ApprovalRequest } from '../types';
 import { api } from '../api/client';
 
-export const ApprovalQueue: React.FC = () => {
+interface ApprovalQueueProps {
+  onDecisionMade?: () => void;
+}
+
+export const ApprovalQueue: React.FC<ApprovalQueueProps> = ({ onDecisionMade }) => {
   const [requests, setRequests] = useState<ApprovalRequest[]>([]);
+  const [pendingCount, setPendingCount] = useState<number>(0);
   const [selectedStatus, setSelectedStatus] = useState<string>('PENDING');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,8 +42,12 @@ export const ApprovalQueue: React.FC = () => {
       setLoading(true);
       setError(null);
       const filter = selectedStatus === 'ALL' ? undefined : selectedStatus;
-      const data = await api.getApprovals(filter);
+      const [data, pendingData] = await Promise.all([
+        api.getApprovals(filter),
+        api.getApprovals('PENDING'),
+      ]);
       setRequests(data);
+      setPendingCount(pendingData.length);
     } catch (err: any) {
       setError(err.message || 'Failed to load approval requests');
     } finally {
@@ -65,15 +74,16 @@ export const ApprovalQueue: React.FC = () => {
       setModalError(null);
       await api.submitApprovalDecision(activeRequest.id, reviewDecision, reviewReason);
       setActiveRequest(null);
-      loadRequests();
+      await loadRequests();
+      if (onDecisionMade) {
+        onDecisionMade();
+      }
     } catch (err: any) {
       setModalError(err.message || 'Submission failed');
     } finally {
       setReviewing(false);
     }
   };
-
-  const pendingCount = requests.filter((r) => r.status === 'PENDING').length;
 
   return (
     <div className="space-y-6">
@@ -123,7 +133,7 @@ export const ApprovalQueue: React.FC = () => {
           >
             {status}
             {status === 'PENDING' && pendingCount > 0 && selectedStatus !== 'PENDING' && (
-              <span className="ml-1.5 px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[10px]">
+              <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px]">
                 {pendingCount}
               </span>
             )}

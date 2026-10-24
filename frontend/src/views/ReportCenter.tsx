@@ -32,7 +32,7 @@ export const ReportCenter: React.FC = () => {
     }
   };
 
-  const handleDownload = (type: 'consolidated' | 'scans' | 'firewall' | 'audit') => {
+  const handleDownload = (type: 'consolidated' | 'scans' | 'firewall' | 'audit' | 'simulations') => {
     const url = `/api/reports/${type}?download=true`;
     const a = document.createElement('a');
     a.href = url;
@@ -77,7 +77,7 @@ export const ReportCenter: React.FC = () => {
       )}
 
       {/* Export Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/60 backdrop-blur flex flex-col justify-between space-y-4">
           <div className="space-y-2">
             <div className="w-9 h-9 rounded-lg bg-cyan-950/80 border border-cyan-800/60 flex items-center justify-center text-cyan-400">
@@ -128,6 +128,25 @@ export const ReportCenter: React.FC = () => {
           </div>
           <button
             onClick={() => handleDownload('firewall')}
+            className="w-full py-2 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs flex items-center justify-center space-x-1.5 transition-colors"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export JSON</span>
+          </button>
+        </div>
+
+        <div className="p-5 rounded-xl border border-slate-800 bg-slate-900/60 backdrop-blur flex flex-col justify-between space-y-4">
+          <div className="space-y-2">
+            <div className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
+              <FileJson className="w-5 h-5" />
+            </div>
+            <h3 className="text-sm font-bold text-white">Threat Simulations</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Automated threat scenario outcomes, pass/fail verification rates, and evidence records from the Threat Lab.
+            </p>
+          </div>
+          <button
+            onClick={() => handleDownload('simulations')}
             className="w-full py-2 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs flex items-center justify-center space-x-1.5 transition-colors"
           >
             <Download className="w-3.5 h-3.5" />

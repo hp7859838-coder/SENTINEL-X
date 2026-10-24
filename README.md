@@ -104,40 +104,40 @@ INGEST → ANALYZE → CLASSIFY → EVALUATE POLICY → ALLOW / BLOCK / REQUIRE 
 - Python 3.12+ installed
 - Node.js 20+ and npm installed
 
-### Option 1: Unified Single-Port Mode (Recommended)
+### Option 1: Unified Single-Port Mode (Recommended for Windows 11)
 
 In this mode, FastAPI serves both the REST API and the pre-compiled React frontend on **http://localhost:8000**.
 
 1. **Set up Python Virtual Environment**:
-   ```bash
+   ```powershell
+   # Windows 11 PowerShell:
    python -m venv .venv
-   # Windows PowerShell:
    .\.venv\Scripts\Activate.ps1
-   # Linux/macOS:
-   source .venv/bin/activate
+   # (Or run directly with .\.venv\Scripts\python.exe)
    ```
 
 2. **Install Backend Dependencies**:
-   ```bash
-   pip install -r requirements.txt
+   ```powershell
+   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
    ```
 
 3. **Build the Frontend Bundle**:
-   ```bash
+   ```powershell
    cd frontend
-   npm install
-   npm run build
+   # In Windows PowerShell, use npm.cmd to bypass execution policy restrictions:
+   npm.cmd install
+   npm.cmd run build
    cd ..
    ```
 
 4. **Launch the Sentinel-X Guardian**:
-   ```bash
-   python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload
+   ```powershell
+   .\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
    ```
 
 5. **Open Browser**:
    Navigate to **[http://localhost:8000](http://localhost:8000)** to interact with the full application.
-   Interactive OpenAPI docs are at **[http://localhost:8000/docs](http://localhost:8000/docs)**.
+   Interactive OpenAPI documentation is available at **[http://localhost:8000/docs](http://localhost:8000/docs)**.
 
 ---
 
@@ -146,16 +146,16 @@ In this mode, FastAPI serves both the REST API and the pre-compiled React fronte
 Run backend and frontend independently in separate terminals:
 
 **Terminal 1 (Backend)**:
-```bash
+```powershell
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --reload --port 8000
 ```
 
 **Terminal 2 (Frontend)**:
-```bash
+```powershell
 cd frontend
-npm run dev
+npm.cmd run dev
 ```
-Open **[http://localhost:5173](http://localhost:5173)** in your browser (Vite will proxy API requests to port 8000).
+Open **[http://localhost:5173](http://localhost:5173)** in your browser (Vite proxies all `/api` requests to port 8000).
 
 ---
 
@@ -171,35 +171,38 @@ Access the application at **[http://localhost:8000](http://localhost:8000)**.
 
 ## 5. Verification & Automated Test Suite
 
-Sentinel-X includes a comprehensive automated test suite in `backend/tests/test_guardian.py` covering all core cybersecurity controls.
+Sentinel-X includes a comprehensive automated test suite in `backend/tests/test_guardian.py` covering all core cybersecurity controls, fail-closed firewall enforcement, and export serialization.
 
-To run the tests:
-```bash
-pytest -v
+To execute the test suite:
+```powershell
+.\.venv\Scripts\python.exe -m pytest backend/tests -v
 ```
 
-### Verified Test Results:
+### Verified Test Results (21 of 21 Passed):
 ```text
-backend/tests/test_guardian.py::test_health_check PASSED                 [  5%]
-backend/tests/test_guardian.py::test_scan_benign_text PASSED             [ 11%]
-backend/tests/test_guardian.py::test_scan_instruction_override PASSED    [ 16%]
-backend/tests/test_guardian.py::test_scan_secret_extraction PASSED       [ 22%]
-backend/tests/test_guardian.py::test_scan_multiple_indicators_clamped PASSED [ 27%]
-backend/tests/test_guardian.py::test_scan_benign_security_research PASSED [ 33%]
-backend/tests/test_guardian.py::test_scan_empty_content_rejected PASSED  [ 38%]
-backend/tests/test_guardian.py::test_disabled_rule_not_evaluated PASSED  [ 44%]
-backend/tests/test_guardian.py::test_firewall_public_read_allowed PASSED [ 50%]
-backend/tests/test_guardian.py::test_firewall_restricted_document_blocked PASSED [ 55%]
-backend/tests/test_guardian.py::test_firewall_data_transfer_blocked PASSED [ 61%]
-backend/tests/test_guardian.py::test_firewall_modify_resource_requires_approval PASSED [ 66%]
-backend/tests/test_guardian.py::test_firewall_unknown_action_fails_closed PASSED [ 72%]
-backend/tests/test_guardian.py::test_approval_workflow_lifecycle PASSED  [ 77%]
-backend/tests/test_guardian.py::test_simulation_scenarios_listing PASSED [ 83%]
-backend/tests/test_guardian.py::test_batch_simulation_execution PASSED   [ 88%]
-backend/tests/test_guardian.py::test_audit_trail_and_dashboard_counts PASSED [ 94%]
-backend/tests/test_guardian.py::test_json_reporting_exports PASSED       [100%]
+backend/tests/test_guardian.py::test_health_check PASSED                 [  4%]
+backend/tests/test_guardian.py::test_scan_benign_text PASSED             [  9%]
+backend/tests/test_guardian.py::test_scan_instruction_override PASSED    [ 14%]
+backend/tests/test_guardian.py::test_scan_secret_extraction PASSED       [ 19%]
+backend/tests/test_guardian.py::test_scan_multiple_indicators_clamped PASSED [ 23%]
+backend/tests/test_guardian.py::test_scan_benign_security_research PASSED [ 28%]
+backend/tests/test_guardian.py::test_scan_empty_content_rejected PASSED  [ 33%]
+backend/tests/test_guardian.py::test_disabled_rule_not_evaluated PASSED  [ 38%]
+backend/tests/test_guardian.py::test_firewall_public_read_allowed PASSED [ 42%]
+backend/tests/test_guardian.py::test_firewall_restricted_document_blocked PASSED [ 47%]
+backend/tests/test_guardian.py::test_firewall_data_transfer_blocked PASSED [ 52%]
+backend/tests/test_guardian.py::test_firewall_modify_resource_requires_approval PASSED [ 57%]
+backend/tests/test_guardian.py::test_firewall_unknown_action_fails_closed PASSED [ 61%]
+backend/tests/test_guardian.py::test_approval_workflow_lifecycle PASSED  [ 66%]
+backend/tests/test_guardian.py::test_simulation_scenarios_listing PASSED [ 71%]
+backend/tests/test_guardian.py::test_batch_simulation_execution PASSED   [ 76%]
+backend/tests/test_guardian.py::test_audit_trail_and_dashboard_counts PASSED [ 80%]
+backend/tests/test_guardian.py::test_json_reporting_exports PASSED       [ 85%]
+backend/tests/test_guardian.py::test_firewall_path_traversal_blocked PASSED [ 90%]
+backend/tests/test_guardian.py::test_firewall_empty_resource_fails_closed PASSED [ 95%]
+backend/tests/test_guardian.py::test_scan_markdown_formatting_detected PASSED [100%]
 
-======================== 18 passed in 4.51s ========================
+======================== 21 passed in 3.32s ========================
 ```
 
 ---
@@ -265,14 +268,21 @@ Follow these steps during a live judge evaluation or demonstration:
 | `/api/firewall/evaluate` | POST | Enforce server-side security policies on agent operations |
 | `/api/firewall/actions` | GET | Catalog of simulated action presets |
 | `/api/approvals` | GET | List approval queue requests with optional status filter |
+| `/api/approvals/{id}` | GET | Fetch details of a specific approval request |
 | `/api/approvals/{id}/decision` | POST | Commit human reviewer decision (APPROVE / REJECT) |
 | `/api/simulation/scenarios` | GET | Retrieve 8 predefined threat verification scenarios |
+| `/api/simulation/run/{id}` | POST | Run an individual threat verification scenario |
 | `/api/simulation/run-all` | POST | Execute batch threat suite and compute pass rate |
 | `/api/rules` | GET | List detection rules with category filtering |
 | `/api/rules/{id}` | PATCH | Toggle rule status or modify score weight |
 | `/api/rules/reset` | POST | Restore detection rules to factory defaults |
 | `/api/events` | GET | Search and filter unified security audit journal |
+| `/api/events/{id}` | GET | Inspect individual audit record payload |
 | `/api/reports/consolidated` | GET | Export full consolidated security audit report (JSON) |
+| `/api/reports/scans` | GET | Export prompt injection scan history (JSON) |
+| `/api/reports/firewall` | GET | Export firewall decisions and policy events (JSON) |
+| `/api/reports/audit` | GET | Export unified audit trail records (JSON) |
+| `/api/reports/simulations` | GET | Export threat simulation lab outcomes (JSON) |
 
 ---
 
@@ -283,38 +293,75 @@ Follow these steps during a live judge evaluation or demonstration:
 2. Select **File -> Open Folder...** (or **Import Project**).
 3. Select the `sentinel-x` root directory.
 4. If using Bob's integrated terminal, run:
-   ```bash
-   pip install -r requirements.txt
-   cd frontend && npm install && npm run build && cd ..
-   python -m uvicorn app.main:app --app-dir backend --port 8000
+   ```powershell
+   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+   cd frontend && npm.cmd install && npm.cmd run build && cd ..
+   .\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --port 8000
    ```
 
 ### B. Pushing to GitHub
-1. Verify git is initialized:
-   ```bash
+1. Verify git working tree:
+   ```powershell
    git status
    ```
-2. If not already a git repository:
-   ```bash
-   git init
-   git branch -M main
+2. Check configured remote:
+   ```powershell
+   git remote -v
    ```
-3. Add files (note that `.gitignore` automatically protects secrets and dependencies):
-   ```bash
+3. Stage and commit:
+   ```powershell
    git add .
    git commit -m "feat: complete Sentinel-X AI Agent Security Guardian platform"
    ```
-4. Link to your target remote repository (replace with your repository URL):
-   ```bash
-   git remote add origin https://github.com/<your-username>/sentinel-x.git
+4. Push to remote:
+   ```powershell
    git push -u origin main
    ```
 
 ---
 
-## 9. Security Limitations & Production Enhancements
+## 9. Troubleshooting Instructions for Windows 11
+
+### 1. PowerShell Script Execution Policy (`npm.ps1 cannot be loaded`)
+- **Symptom**: `npm : File C:\Program Files\nodejs\npm.ps1 cannot be loaded because running scripts is disabled on this system.`
+- **Remedy**: Use `npm.cmd` explicitly in Windows PowerShell:
+  ```powershell
+  npm.cmd install
+  npm.cmd run build
+  ```
+  Alternatively, update your user execution policy once:
+  ```powershell
+  Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+  ```
+
+### 2. Port 8000 Already in Use
+- **Symptom**: `[Errno 10048] error while attempting to bind on address ('127.0.0.1', 8000)`
+- **Remedy**: Check the listening process and terminate it, or select an alternative port:
+  ```powershell
+  Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue
+  # Or start on port 8080:
+  .\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --port 8080
+  ```
+
+### 3. Missing Frontend Assets / 404 on Root
+- **Symptom**: Accessing `http://localhost:8000` returns `{"detail":"Not Found"}`.
+- **Remedy**: The frontend bundle must be built once into `frontend/dist`:
+  ```powershell
+  cd frontend
+  npm.cmd run build
+  cd ..
+  ```
+
+### 4. Database Concurrency or Lock Notice
+- **Symptom**: SQLite database locked warning during intense tests.
+- **Remedy**: `backend/app/database.py` enables `check_same_thread=False` and cleanly manages sessions via FastAPI dependencies. For enterprise multi-writer deployments, configure `DATABASE_URL=postgresql://...`.
+
+---
+
+## 10. Security Limitations & Production Enhancements
 
 - **Heuristic Scope**: Static regex and token heuristics catch known override patterns, delimiter injections, and exfiltration directives. However, novel zero-day prompt embeddings or multi-turn conversational injections can evade static filters.
 - **Defense in Depth**: In enterprise production, Sentinel-X should be paired with an LLM-as-a-judge layer, semantic vector guardrails, and cryptographic token tagging.
 - **Simulated Boundaries**: Only actions routed through the Sentinel-X policy gateway are enforced. Direct out-of-band OS execution by an agent outside the gateway is outside this platform's purview.
 - **PDF Export**: Structured JSON export is fully implemented; server-side PDF generation via WeasyPrint or headless browser rendering is planned for future enterprise releases.
+- **Multi-Factor Approver Auth**: Currently operates in transparent Local Security Mode (`SEC_ADMIN`, `ANALYST`, `AUDITOR`). Enterprise production roadmap includes OIDC / SAML integration.

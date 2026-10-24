@@ -53,10 +53,16 @@ def evaluate_agent_action(
     Evaluates an agent action against strict server-side policy rules.
     Ignores any client-submitted decision. Fails closed.
     """
+    # Sanitize and ensure strict types
+    action_type = str(action_type or "").strip()
+    resource = str(resource or "").strip()
+    parameters = parameters if isinstance(parameters, dict) else {}
+    agent_id = str(agent_id or "simulated-agent-01").strip()
+
     decision_id = f"DEC-{uuid.uuid4().hex[:8].upper()}"
     timestamp_str = datetime.now(timezone.utc).isoformat()
 
-    # Fail closed on unknown or empty action type
+    # Fail closed on unknown or empty action type or resource
     if not action_type or action_type not in KNOWN_ACTIONS:
         decision = "BLOCK"
         policy_name = "DEFAULT_DENY_FAIL_CLOSED"
@@ -66,6 +72,12 @@ def evaluate_agent_action(
         )
         requires_approval = False
         approval_id = None
+    elif not resource:
+        decision = "BLOCK"
+        policy_name = "DEFAULT_DENY_FAIL_CLOSED"
+        reason = "Target resource identifier cannot be empty. Policy engine requires explicit target resource."
+        requires_approval = False
+        approval_id = None
     else:
         action_spec = KNOWN_ACTIONS[action_type]
         policy_name = action_spec["policy"]
@@ -73,9 +85,17 @@ def evaluate_agent_action(
 
         # Policy rule-set checks
         if action_type == "READ_PUBLIC_DOCUMENT":
-            # Verify resource pattern is indeed public
-            if "restricted" in resource.lower() or "secret" in resource.lower():
+            resource_clean = resource.lower()
+            traversal_or_os_indicators = ["..", "/etc/", "c:\\", "system32", "passwd", "shadow", "authorized_keys", ".env"]
+            if any(ind in resource_clean for ind in traversal_or_os_indicators):
                 decision = "BLOCK"
+                policy_name = "BLOCK_SENSITIVE_RESOURCE_TRAVERSAL"
+                reason = "Target resource path violates public read scope: path traversal or sensitive OS file indicator detected."
+                requires_approval = False
+                approval_id = None
+            elif "restricted" in resource_clean or "secret" in resource_clean:
+                decision = "BLOCK"
+                policy_name = "BLOCK_RESTRICTED_ACCESS"
                 reason = "Target resource path violates public read scope: suspicious path indicator detected."
                 requires_approval = False
                 approval_id = None

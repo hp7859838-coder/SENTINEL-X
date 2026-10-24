@@ -138,11 +138,14 @@ def scan_prompt_content(content: str, db: Session, input_type: str = "text") -> 
     matched_details: List[MatchedRuleDetail] = []
     accumulated_score = 0
 
+    # Normalize common markdown emphasis tokens (*, _, `, #, ~) to spaces for robust matching across Markdown & JSON
+    normalized_content = re.sub(r'[*_`#~]', ' ', content)
+
     # Ensure rule evaluation never runs arbitrary code
     for rule in rules:
         try:
-            regex = re.compile(rule.pattern)
-            match = regex.search(content)
+            regex = re.compile(rule.pattern, re.MULTILINE)
+            match = regex.search(content) or regex.search(normalized_content)
             if match:
                 # Capture matched substring as evidence (max 120 chars for display)
                 snippet = match.group(0)

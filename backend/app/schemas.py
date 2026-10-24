@@ -46,10 +46,10 @@ class ScanResult(BaseModel):
 # ----------------------
 
 class ActionEvaluateRequest(BaseModel):
-    action_type: str = Field(..., description="Simulated action identifier")
-    resource: str = Field(..., description="Simulated target resource")
+    action_type: str = Field(..., max_length=64, description="Simulated action identifier")
+    resource: str = Field(..., max_length=255, description="Simulated target resource")
     parameters: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Action parameters")
-    agent_id: Optional[str] = Field("sentinel-agent-01", description="Identifier of requesting agent")
+    agent_id: Optional[str] = Field("sentinel-agent-01", max_length=64, description="Identifier of requesting agent")
 
 
 class ActionEvaluateResponse(BaseModel):

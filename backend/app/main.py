@@ -58,6 +58,18 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(SecurityHeadersMiddleware)
 
+
+# Global Exception Handler to prevent stack trace or secret exposure to end users
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    from starlette.exceptions import HTTPException as StarletteHTTPException
+    if isinstance(exc, StarletteHTTPException):
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An internal error occurred. Sentinel-X gateway prevented traceback exposure."},
+    )
+
 # CORS Middleware for Frontend Development
 app.add_middleware(
     CORSMiddleware,

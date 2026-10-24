@@ -15,7 +15,11 @@ import { StatusBadge } from '../components/StatusBadge';
 import { SimulationScenario, SimulationResult, BatchSimulationResponse } from '../types';
 import { api } from '../api/client';
 
-export const ThreatLab: React.FC = () => {
+interface ThreatLabProps {
+  onSimulationComplete?: () => void;
+}
+
+export const ThreatLab: React.FC<ThreatLabProps> = ({ onSimulationComplete }) => {
   const [scenarios, setScenarios] = useState<SimulationScenario[]>([]);
   const [resultsMap, setResultsMap] = useState<Record<string, SimulationResult>>({});
   const [runningId, setRunningId] = useState<string | null>(null);
@@ -44,6 +48,9 @@ export const ThreatLab: React.FC = () => {
       setRunningId(scenarioId);
       const res = await api.runSingleScenario(scenarioId);
       setResultsMap((prev) => ({ ...prev, [scenarioId]: res }));
+      if (onSimulationComplete) {
+        onSimulationComplete();
+      }
     } catch {
       // Handle error
     } finally {
@@ -61,6 +68,9 @@ export const ThreatLab: React.FC = () => {
         newMap[r.scenario_id] = r;
       });
       setResultsMap(newMap);
+      if (onSimulationComplete) {
+        onSimulationComplete();
+      }
     } catch {
       // Handle error
     } finally {
@@ -174,8 +184,16 @@ export const ThreatLab: React.FC = () => {
                     Expected: <span className="text-slate-200">{sc.expected_outcome}</span>
                   </div>
                   {res && (
-                    <div className="text-slate-400">
-                      Actual: <span className="text-cyan-300 font-bold">{res.actual_outcome}</span>
+                    <div>
+                      <div className="text-slate-400">
+                        Actual: <span className="text-cyan-300 font-bold">{res.actual_outcome}</span>
+                      </div>
+                      {!res.passed && (
+                        <div className="mt-1.5 p-2 rounded bg-red-950/40 border border-red-800/60 text-red-300 text-[11px] leading-relaxed">
+                          <span className="font-semibold text-red-200">Mismatch Explanation: </span>
+                          Evaluation result did not satisfy criteria ({sc.expected_outcome}). Received: {res.actual_outcome}.
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

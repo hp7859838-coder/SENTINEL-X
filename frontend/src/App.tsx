@@ -16,11 +16,19 @@ export const App: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const fetchGlobalState = async () => {
+  const fetchApprovalCount = async () => {
     try {
-      setIsRefreshing(true);
       const approvals = await api.getApprovals('PENDING');
       setPendingApprovalsCount(approvals.length);
+    } catch {
+      // Non-fatal
+    }
+  };
+
+  const handleManualRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      await fetchApprovalCount();
       setRefreshKey((k) => k + 1);
     } catch {
       // Non-fatal
@@ -30,15 +38,15 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchGlobalState();
-    // Refresh counts every 20 seconds
-    const interval = setInterval(fetchGlobalState, 20000);
+    fetchApprovalCount();
+    // Refresh badge counts every 20 seconds in the background without unmounting active view
+    const interval = setInterval(fetchApprovalCount, 20000);
     return () => clearInterval(interval);
   }, []);
 
   const handleNavigate = (view: string) => {
     setCurrentView(view);
-    fetchGlobalState();
+    fetchApprovalCount();
   };
 
   return (
@@ -46,17 +54,24 @@ export const App: React.FC = () => {
       currentView={currentView}
       onNavigate={handleNavigate}
       pendingApprovalsCount={pendingApprovalsCount}
-      onRefresh={fetchGlobalState}
+      onRefresh={handleManualRefresh}
       isRefreshing={isRefreshing}
     >
       <div key={refreshKey}>
         {currentView === 'dashboard' && <CommandCenter onNavigate={handleNavigate} />}
         {currentView === 'scanner' && <PromptScanner />}
         {currentView === 'firewall' && (
-          <ActionFirewall onNavigateToApprovals={() => handleNavigate('approvals')} />
+          <ActionFirewall
+            onNavigateToApprovals={() => handleNavigate('approvals')}
+            onActionEvaluated={fetchApprovalCount}
+          />
         )}
-        {currentView === 'approvals' && <ApprovalQueue />}
-        {currentView === 'simulations' && <ThreatLab />}
+        {currentView === 'approvals' && (
+          <ApprovalQueue onDecisionMade={fetchApprovalCount} />
+        )}
+        {currentView === 'simulations' && (
+          <ThreatLab onSimulationComplete={fetchApprovalCount} />
+        )}
         {currentView === 'rules' && <RulesManager />}
         {currentView === 'events' && <EventExplorer />}
         {currentView === 'reports' && <ReportCenter />}

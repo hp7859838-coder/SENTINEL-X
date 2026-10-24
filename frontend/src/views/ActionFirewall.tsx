@@ -17,9 +17,13 @@ import { api } from '../api/client';
 
 interface ActionFirewallProps {
   onNavigateToApprovals?: () => void;
+  onActionEvaluated?: () => void;
 }
 
-export const ActionFirewall: React.FC<ActionFirewallProps> = ({ onNavigateToApprovals }) => {
+export const ActionFirewall: React.FC<ActionFirewallProps> = ({
+  onNavigateToApprovals,
+  onActionEvaluated,
+}) => {
   const [catalog, setCatalog] = useState<ActionPreset[]>([]);
   const [selectedActionType, setSelectedActionType] = useState('READ_PUBLIC_DOCUMENT');
   const [resource, setResource] = useState('synthetic_public/onboarding_guide.md');
@@ -65,6 +69,9 @@ export const ActionFirewall: React.FC<ActionFirewallProps> = ({ onNavigateToAppr
       setError(null);
       const res = await api.evaluateAction(selectedActionType, resource, parsedParams, agentId);
       setEvaluation(res);
+      if (res.requires_approval && onActionEvaluated) {
+        onActionEvaluated();
+      }
     } catch (err: any) {
       setError(err.message || 'Firewall evaluation failed');
     } finally {

@@ -11,6 +11,7 @@ from app.services.reporter import (
     export_scans_json,
     export_firewall_json,
     export_audit_trail_json,
+    export_simulations_json,
 )
 from datetime import datetime, timezone
 import json
@@ -66,6 +67,20 @@ def get_audit_export(download: bool = False, db: Session = Depends(get_db)):
     data = export_audit_trail_json(db)
     if download:
         filename = f"sentinel_x_audit_trail_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+        return Response(
+            content=json.dumps(data, indent=2),
+            media_type="application/json",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    return data
+
+
+@router.get("/simulations")
+def get_simulations_export(download: bool = False, db: Session = Depends(get_db)):
+    """Exports threat simulation lab run results in JSON format."""
+    data = export_simulations_json(db)
+    if download:
+        filename = f"sentinel_x_threat_simulations_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
         return Response(
             content=json.dumps(data, indent=2),
             media_type="application/json",

@@ -40,6 +40,8 @@ def generate_consolidated_report(db: Session) -> Dict[str, Any]:
         else:
             sev_counts["INFO"] += 1
 
+    simulations = [e for e in events if e.event_type == "SIMULATION_RUN"]
+
     report_payload = {
         "report_id": f"REP-SENTINELX-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}",
         "generated_at": now_utc,
@@ -62,6 +64,7 @@ def generate_consolidated_report(db: Session) -> Dict[str, Any]:
         "recent_audit_events": [e.to_dict() for e in events[:50]],
         "approval_requests": [a.to_dict() for a in approvals],
         "active_detection_rules": [r.to_dict() for r in rules if r.is_enabled],
+        "threat_simulations": [s.to_dict() for s in simulations[:20]],
     }
 
     return report_payload
@@ -91,6 +94,16 @@ def export_audit_trail_json(db: Session) -> Dict[str, Any]:
     events = db.query(EventLogModel).order_by(EventLogModel.timestamp.desc()).all()
     return {
         "export_type": "UNIFIED_AUDIT_TRAIL",
+        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "total_records": len(events),
+        "records": [e.to_dict() for e in events],
+    }
+
+
+def export_simulations_json(db: Session) -> Dict[str, Any]:
+    events = db.query(EventLogModel).filter(EventLogModel.event_type == "SIMULATION_RUN").order_by(EventLogModel.timestamp.desc()).all()
+    return {
+        "export_type": "THREAT_SIMULATION_RESULTS",
         "exported_at": datetime.now(timezone.utc).isoformat(),
         "total_records": len(events),
         "records": [e.to_dict() for e in events],
